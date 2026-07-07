@@ -1,0 +1,86 @@
+## .NET
+bin/
+obj/
+out/
+publish/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.cache
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio
+.vs/
+*.rsuser
+*.sln.ide
+
+## Rider / JetBrains
+.idea/
+*.sln.iml
+
+## VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## User-specific & local config
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.p12
+
+## Entity Framework
+*.db
+*.db-shm
+*.db-wal
+
+## Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+## NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+.nuget/
+
+## OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+## Environment
+.env
+.env.*
+!.env.example
+
+## Docker (local overrides)
+docker-compose.override.yml

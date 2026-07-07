@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SAAP.API/SAAP.API.csproj" />
+    <Project Path="src/SAAP.Application/SAAP.Application.csproj" />
+    <Project Path="src/SAAP.Domain/SAAP.Domain.csproj" />
+    <Project Path="src/SAAP.Infrastructure/SAAP.Infrastructure.csproj" />
+  </Folder>
+</Solution>

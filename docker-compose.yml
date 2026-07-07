@@ -1,0 +1,68 @@
+
+
+services:
+  saap-db:
+    image: postgres:15
+    container_name: saap-db
+    environment:
+      POSTGRES_DB: SAAPDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - saap-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  saap-redis:
+    image: redis:latest
+    container_name: saap-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - saap-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  saap-api:
+    build:
+      context: .
+      dockerfile: src/SAAP.API/Dockerfile
+    container_name: saap-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # Override appsettings.json ConnectionStrings
+      - ConnectionStrings__DefaultConnection=Host=saap-db;Port=5432;Database=SAAPDb;Username=postgres;Password=mysecretpassword
+      # Override appsettings.json RedisSettings
+      - RedisSettings__ConnectionString=saap-redis:6379
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      saap-db:
+        condition: service_healthy
+      saap-redis:
+        condition: service_healthy
+    networks:
+      - saap-network
+    restart: unless-stopped
+
+networks:
+  saap-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
