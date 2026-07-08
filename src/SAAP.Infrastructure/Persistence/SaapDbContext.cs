@@ -9,4 +9,9 @@ public class SaapDbContext : IdentityDbContext<User, Role, Guid>
     public SaapDbContext(DbContextOptions<SaapDbContext> options) : base(options) { }
 
     public DbSet<AuditLog> AuditLogs { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+    }
 }

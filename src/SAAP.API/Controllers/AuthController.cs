@@ -72,7 +72,7 @@ public class AuthController : ControllerBase
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        var token = _tokenService.GenerateJwtToken(user.Id.ToString(), user.Email!, roles);
+        var token = _tokenService.CreateToken(user);
 
         return Ok(new { Token = token, Expiration = DateTime.UtcNow.AddHours(2) });
     }

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SAAP.Infrastructure.Persistence;
 using StackExchange.Redis;
 using SAAP.Infrastructure.Caching;
@@ -10,6 +10,7 @@ using SAAP.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Scalar.AspNetCore;
 
 // Serilog yapılandırması
 Log.Logger = new LoggerConfiguration()
@@ -20,13 +21,12 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Serilog'u host'a ekle
 builder.Host.UseSerilog();
 
 // Servislerin tanımlanması
 var redisConnectionString = builder.Configuration.GetSection("RedisSettings:ConnectionString").Value ?? "localhost:6379";
 var redisOptions = ConfigurationOptions.Parse(redisConnectionString);
-redisOptions.AbortOnConnectFail = false; // Allow startup even if Redis is not running
+redisOptions.AbortOnConnectFail = false;
 var redis = ConnectionMultiplexer.Connect(redisOptions);
 builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
 builder.Services.AddScoped<RedisRateLimiterService>();
@@ -34,8 +34,10 @@ builder.Services.AddScoped<RedisRateLimiterService>();
 builder.Services.AddDbContext<SaapDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add controllers support
 builder.Services.AddControllers();
+
+// .NET 10 Modern OpenAPI Servisi
+builder.Services.AddOpenApi(); 
 
 // Register Identity
 builder.Services.AddIdentity<User, SAAP.Domain.Entities.Role>(options =>
@@ -45,22 +47,16 @@ builder.Services.AddIdentity<User, SAAP.Domain.Entities.Role>(options =>
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 6;
-    
     options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<SaapDbContext>()
 .AddDefaultTokenProviders();
 
-// Register Infrastructure services (Identity, TokenService, etc.)
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// JWT Authentication configuration
+// JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? jwtSettings["SecretKey"];
-if (string.IsNullOrEmpty(secretKey))
-{
-    secretKey = "A_Very_Strong_And_Secret_Key_For_Development_SAAP_Project_2026";
-}
+var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? jwtSettings["SecretKey"] ?? "A_Very_Strong_And_Secret_Key_For_Development_SAAP_Project_2026";
 var key = Encoding.UTF8.GetBytes(secretKey);
 
 builder.Services.AddAuthentication(options =>
@@ -84,30 +80,27 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Database initialization
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<SaapDbContext>();
     dbContext.Database.EnsureCreated(); 
 }
 
-// HTTP İstek Hattı (Pipeline)
+// HTTP İstek Hattı (Modern OpenAPI & Scalar UI)
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(); // Tarayıcıda /scalar/v1 adresinden erişebilirsin
 }
 
 app.UseHttpsRedirection();
-
-// Middleware (Güvenlik Bekçisi) en başta olmalı
 app.UseMiddleware<AuditLoggingMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Controllers mapping
 app.MapControllers();
 
 // Endpointler
@@ -123,17 +116,12 @@ app.MapGet("/api/audit-logs", async (SaapDbContext db) =>
 app.MapGet("/weatherforecast", () =>
 {
     var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    return Enumerable.Range(1, 5).Select(index => new WeatherForecast(
+        DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+        Random.Shared.Next(-20, 55),
+        summaries[Random.Shared.Next(summaries.Length)]
+    )).ToArray();
+}).WithName("GetWeatherForecast");
 
 app.Run();
 

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SAAP.Application.Common.Interfaces;
-using SAAP.Infrastructure.Security;
+using SAAP.Infrastructure.Services;
 
 namespace SAAP.Infrastructure;
 
