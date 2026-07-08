@@ -1,0 +1,48 @@
+name: .NET CI/CD
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Test
+      run: dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker Image (saap-api)
+      run: |
+        docker build -t saap-api:latest -f src/SAAP.API/Dockerfile .
+
+    - name: Validate Docker Compose Configuration
+      run: |
+        docker compose config
+
+    - name: Start Docker Compose Services
+      run: |
+        docker compose up -d
+        
+    - name: Check Running Containers
+      run: |
+        docker compose ps

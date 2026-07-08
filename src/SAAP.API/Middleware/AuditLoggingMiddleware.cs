@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using SAAP.Infrastructure.Persistence; // SaapDbContext için
 using SAAP.Domain.Entities;            // AuditLog için
 using SAAP.Infrastructure.Caching; // RedisRateLimiterService bu klasörde
@@ -28,11 +28,9 @@ public class AuditLoggingMiddleware
         return; // İşlemi burada kesiyoruz
     }
 
-    // 2. Limit aşılmadıysa, isteği devam ettir (önceki loglama mantığınla birleştir)
-    await _next(context);
+    // 2. Limit aşılmadıysa, isteği devam ettir ve süreyi ölç
     var sw = Stopwatch.StartNew();
     
-    // İstek devam etsin
     await _next(context);
 
     sw.Stop();

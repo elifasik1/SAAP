@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SAAP.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SAAP.Infrastructure.Persistence;
 namespace SAAP.Infrastructure.Migrations
 {
     [DbContext(typeof(SaapDbContext))]
-    partial class SaapDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260708184021_AddIdentity")]
+    partial class AddIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
