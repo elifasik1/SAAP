@@ -22,15 +22,17 @@ SAAP/
 │   ├── SAAP.Domain/           # Domain entities ve business logic
 │   ├── SAAP.Application/      # Application services ve DTOs
 │   ├── SAAP.Infrastructure/   # Veri erişim, caching, external services
-│   └── SAAP.API/              # Web API, controllers, middleware
+│   ├── SAAP.API/              # Web API, controllers, middleware
+│   ├── SAAP.Web/              # React frontend (React + TypeScript + Vite)
+│   └── SAAP.UnitTests/        # Unit test projesi
 ├── docker-compose.yml         # Docker Compose konfigürasyonu
-├── Dockerfile                 # API konteyneri için build ayarları
 ├── .dockerignore             # Docker için ignore dosyaları
 └── README.md                  # Proje dokümantasyonu
 ```
 
 ## Teknolojiler
 
+### Backend
 - **.NET 10.0**
 - **ASP.NET Core**
 - **Entity Framework Core 10.0.9**
@@ -38,12 +40,23 @@ SAAP/
 - **Redis (StackExchange.Redis)**
 - **Serilog.AspNetCore** (Serilog.Sinks.Console, Serilog.Sinks.File)
 - **Microsoft.AspNetCore.OpenApi**
+
+### Frontend
+- **React 19**
+- **TypeScript**
+- **Vite**
+- **React Router DOM**
+- **Recharts** (Chart kütüphanesi)
+- **Lucide React** (Icon kütüphanesi)
+
+### DevOps
 - **Docker & Docker Compose**
 
 ## Gereksinimler
 
 ### Local Development
 - .NET 10.0 SDK
+- Node.js (v18+) ve npm
 - PostgreSQL veri tabanı
 - Redis sunucusu
 
@@ -59,12 +72,19 @@ git clone <repository-url>
 cd SAAP
 ```
 
-2. Bağımlılıkları yükleyin:
+2. Backend bağımlılıklarını yükleyin:
 ```bash
 dotnet restore
 ```
 
-3. Connection string'leri `appsettings.json` dosyasında yapılandırın:
+3. Frontend bağımlılıklarını yükleyin:
+```bash
+cd src/SAAP.Web
+npm install
+cd ../..
+```
+
+4. Connection string'leri `appsettings.json` dosyasında yapılandırın:
 ```json
 {
   "ConnectionStrings": {
@@ -76,7 +96,7 @@ dotnet restore
 }
 ```
 
-4. Veri tabanı migration'larını çalıştırın:
+5. Veri tabanı migration'larını çalıştırın:
 ```bash
 dotnet ef database update --project src/SAAP.Infrastructure
 ```
@@ -85,17 +105,26 @@ dotnet ef database update --project src/SAAP.Infrastructure
 
 ### Local Development
 
-Geliştirme ortamında çalıştırmak için:
+Backend'i çalıştırmak için:
 
 ```bash
 dotnet run --project src/SAAP.API
 ```
 
-API varsayılan olarak `https://localhost:5001` adresinde çalışacaktır.
+Frontend'i çalıştırmak için:
+
+```bash
+cd src/SAAP.Web
+npm run dev
+```
+
+Backend varsayılan olarak `https://localhost:5001`, frontend ise `http://localhost:5173` adresinde çalışacaktır.
 
 ### Docker ile Çalıştırma
 
-Tüm servisleri (PostgreSQL, Redis, API) Docker Compose ile başlatmak için:
+Backend servislerini (PostgreSQL, Redis, API) Docker Compose ile başlatmak için:
+
+**Not:** Frontend şu an Docker Compose'a dahil değil, local development ile çalıştırılmalıdır.
 
 ```bash
 docker-compose up -d
@@ -142,24 +171,32 @@ Geliştirme ortamında OpenAPI dokümantasyonu şu adreste mevcuttur:
 
 ## Development
 
-### Logging
+### Frontend Development
 
-Serilog kullanılarak merkezi loglama sistemi uygulanmıştır:
-- **Console Sink**: Konsola log çıktısı
-- **File Sink**: `logs/log-.txt` dosyasına günlük log arşivleme
-- **Error Handling**: AuditLoggingMiddleware'de hata loglama
+Frontend development komutları:
 
-Log dosyaları `logs/` klasöründe günlük olarak saklanır.
+```bash
+cd src/SAAP.Web
 
-### Configuration
+# Development server
+npm run dev
 
-Tüm konfigürasyon `appsettings.json` dosyasında yönetilir:
-- `ConnectionStrings:DefaultConnection`: PostgreSQL bağlantı string'i
-- `RedisSettings:ConnectionString`: Redis bağlantı string'i
+# Build for production
+npm run build
 
-Docker ortamında bu değerler environment variables ile override edilir:
-- `ConnectionStrings__DefaultConnection`
-- `RedisSettings__ConnectionString`
+# Preview production build
+npm run preview
+
+# Lint
+npm run lint
+```
+
+Frontend proje yapısı:
+- `src/pages/` - Sayfa bileşenleri
+- `src/components/` - Tekrar kullanılabilir bileşenler
+- `src/services/` - API servisleri
+- `src/context/` - Context providers
+- `src/data/` - Veri ve tip tanımlamaları
 
 ### Migration Oluşturma
 

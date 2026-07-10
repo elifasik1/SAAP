@@ -1,0 +1,118 @@
+.audit-table-card {
+  background: var(--color-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  transition: all var(--transition-base);
+  overflow: hidden;
+}
+
+.audit-table-card:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.audit-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.audit-table-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.audit-table-count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.audit-table-wrapper {
+  overflow-x: auto;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.audit-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.audit-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+}
+
+.audit-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.audit-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.audit-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.status-badge.success {
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--color-success);
+}
+
+.status-badge.warning {
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--color-warning);
+}
+
+.status-badge.error {
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--color-danger);
+}
+
+.audit-ip {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.audit-path {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-xs);
+}
+
+.audit-duration {
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .audit-table th:nth-child(1),
+  .audit-table td:nth-child(1) {
+    display: none;
+  }
+}
