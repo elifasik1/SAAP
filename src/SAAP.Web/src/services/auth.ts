@@ -5,7 +5,7 @@
 export function logout() {
   localStorage.removeItem('saap_token');
   localStorage.removeItem('token');
-  window.location.href = '/login';
+  window.location.href = '/';
 }
 
 export function getToken(): string | null {

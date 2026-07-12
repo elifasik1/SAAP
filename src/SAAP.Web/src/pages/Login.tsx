@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import './Auth.css';
 
@@ -13,14 +13,13 @@ export default function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { login, isAuthenticated } = useAuth();
 
-  // Redirect if already logged in
   useEffect(() => {
-    const token = localStorage.getItem('saap_token') || localStorage.getItem('token');
-    if (token) {
+    if (isAuthenticated) {
       navigate('/dashboard');
     }
-  }, [navigate]);
+  }, [isAuthenticated, navigate]);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isFormInvalid = !email || !password || !isValidEmail;
@@ -31,16 +30,16 @@ export default function Login() {
       setError('Lütfen geçerli bir e-posta ve şifre girin.');
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
-      await api.login(email, password);
-      showToast('Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
+      await login(email, password);
+      showToast('Giriş başarılı! Dashboard\'a yönlendiriliyorsunuz...', 'success');
       navigate('/dashboard');
-    } catch (err: any) {
-      const errMsg = err.message || 'Giriş başarısız. Lütfen tekrar deneyin.';
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Giriş başarısız. Lütfen tekrar deneyin.';
       setError(errMsg);
       showToast(errMsg, 'error');
     } finally {
@@ -119,6 +118,10 @@ export default function Login() {
 
         <div className="auth-footer">
           Hesabınız yok mu? <Link to="/register">Kayıt Olun</Link>
+          <br />
+          <Link to="/" style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '8px', display: 'inline-block' }}>
+            ← Ana Sayfaya Dön
+          </Link>
         </div>
       </div>
     </main>

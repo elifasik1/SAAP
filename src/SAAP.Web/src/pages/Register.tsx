@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, User, ShieldCheck } from 'lucide-react';
-import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import './Auth.css';
+
+const PASSWORD_HINT = 'En az 6 karakter, büyük/küçük harf, rakam ve özel karakter içermeli.';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -14,9 +16,11 @@ export default function Register() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { register } = useAuth();
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isFormInvalid = !name.trim() || !email || !password || password.length < 6 || password !== confirmPassword || !isValidEmail;
+  const isStrongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/.test(password);
+  const isFormInvalid = !name.trim() || !email || !password || !isStrongPassword || password !== confirmPassword || !isValidEmail;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,8 +28,8 @@ export default function Register() {
       let validationMsg = 'Lütfen tüm alanları doldurun.';
       if (password !== confirmPassword) {
         validationMsg = 'Şifreler eşleşmiyor!';
-      } else if (password.length < 6) {
-        validationMsg = 'Şifre en az 6 karakter olmalıdır.';
+      } else if (!isStrongPassword) {
+        validationMsg = PASSWORD_HINT;
       } else if (!isValidEmail) {
         validationMsg = 'Geçerli bir e-posta adresi girin.';
       }
@@ -33,26 +37,20 @@ export default function Register() {
       showToast(validationMsg, 'error');
       return;
     }
-    
+
     setLoading(true);
     setError('');
 
-    // Parse FirstName and LastName from Name
     const nameParts = name.trim().split(' ');
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '.';
 
     try {
-      await api.register({
-        email,
-        password,
-        firstName,
-        lastName
-      });
+      await register({ email, password, firstName, lastName });
       showToast('Kayıt başarılı! Giriş yapabilirsiniz.', 'success');
       navigate('/login');
-    } catch (err: any) {
-      const errMsg = err.message || 'Kayıt başarısız. Lütfen tekrar deneyin.';
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Kayıt başarısız. Lütfen tekrar deneyin.';
       setError(errMsg);
       showToast(errMsg, 'error');
     } finally {
@@ -125,6 +123,7 @@ export default function Register() {
                 disabled={loading}
               />
             </div>
+            <small style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{PASSWORD_HINT}</small>
           </div>
 
           <div className="form-group">
@@ -152,6 +151,10 @@ export default function Register() {
 
         <div className="auth-footer">
           Zaten hesabınız var mı? <Link to="/login">Giriş Yapın</Link>
+          <br />
+          <Link to="/" style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '8px', display: 'inline-block' }}>
+            ← Ana Sayfaya Dön
+          </Link>
         </div>
       </div>
     </main>

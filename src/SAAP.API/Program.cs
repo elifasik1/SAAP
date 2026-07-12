@@ -10,6 +10,7 @@ using SAAP.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
 using Scalar.AspNetCore;
 
 // Serilog yapılandırması
@@ -34,7 +35,17 @@ builder.Services.AddScoped<RedisRateLimiterService>();
 builder.Services.AddDbContext<SaapDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
 
 // .NET 10 Modern OpenAPI Servisi
 builder.Services.AddOpenApi(); 
@@ -86,8 +97,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins("http://localhost:5173")
+              .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
     });
 });
 
@@ -97,7 +109,32 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<SaapDbContext>();
-    dbContext.Database.EnsureCreated(); 
+    dbContext.Database.EnsureCreated();
+
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "AuditLogs" ADD COLUMN IF NOT EXISTS "UserId" uuid NULL;
+        ALTER TABLE "AuditLogs" ADD COLUMN IF NOT EXISTS "UserEmail" text NULL;
+        ALTER TABLE "AuditLogs" ADD COLUMN IF NOT EXISTS "HttpMethod" text NOT NULL DEFAULT 'GET';
+        ALTER TABLE "AspNetUsers" ADD COLUMN IF NOT EXISTS "AvatarUrl" text NULL;
+        CREATE TABLE IF NOT EXISTS "UserSecuritySettings" (
+            "UserId" uuid PRIMARY KEY,
+            "TwoFactorEnabled" boolean NOT NULL,
+            "SessionLockEnabled" boolean NOT NULL,
+            "IpWhitelistEnabled" boolean NOT NULL,
+            "AuditNotificationsEnabled" boolean NOT NULL,
+            "ApiKeyRotationEnabled" boolean NOT NULL,
+            "UpdatedAt" timestamp with time zone NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS "Notifications" (
+            "Id" uuid PRIMARY KEY,
+            "UserId" uuid NOT NULL,
+            "Type" text NOT NULL,
+            "Message" text NOT NULL,
+            "IsRead" boolean NOT NULL,
+            "CreatedAt" timestamp with time zone NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS "IX_Notifications_UserId_CreatedAt" ON "Notifications" ("UserId", "CreatedAt");
+        """);
 }
 
 // HTTP İstek Hattı (Modern OpenAPI & Scalar UI)
@@ -109,21 +146,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
-app.UseMiddleware<AuditLoggingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<AuditLoggingMiddleware>();
 app.MapControllers();
-
-// Endpointler
-app.MapGet("/api/audit-logs", async (SaapDbContext db) =>
-{
-    var logs = await db.AuditLogs
-        .OrderByDescending(x => x.CreatedAt)
-        .Take(50)
-        .ToListAsync();
-    return Results.Ok(logs);
-}).RequireAuthorization();
 
 app.MapGet("/weatherforecast", () =>
 {
@@ -133,7 +162,7 @@ app.MapGet("/weatherforecast", () =>
         Random.Shared.Next(-20, 55),
         summaries[Random.Shared.Next(summaries.Length)]
     )).ToArray();
-}).WithName("GetWeatherForecast");
+}).RequireCors("AllowFrontend").WithName("GetWeatherForecast");
 
 app.Run();
 

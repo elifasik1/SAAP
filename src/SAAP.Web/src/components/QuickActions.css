@@ -76,3 +76,18 @@
   color: var(--color-text);
   transform: translateX(2px);
 }
+
+.quick-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.quick-action-btn .spin {
+  animation: quick-action-spin 0.8s linear infinite;
+}
+
+@keyframes quick-action-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

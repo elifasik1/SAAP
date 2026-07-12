@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Download, FileLineChart, ShieldAlert } from 'lucide-react';
 import {
   AreaChart,
@@ -10,53 +10,97 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { heatmapData, monthlyTrends } from '../data/mockData';
 import Breadcrumb from '../components/Breadcrumb';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { api } from '../services/api';
+import { buildHeatmapFromLogs, buildMonthlyTrendsFromLogs } from '../types';
+import { exportAuditLogsToCsv } from '../utils/dataExport';
 import './Reporting.css';
 
 const daysOfWeek = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
 export default function Reporting() {
-  // Organize heatmap cells by day for rendering
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(true);
+
+  const [heatmapData, setHeatmapData] = useState<ReturnType<typeof buildHeatmapFromLogs>>([]);
+  const [monthlyTrends, setMonthlyTrends] = useState<ReturnType<typeof buildMonthlyTrendsFromLogs>>([]);
+  const [logs, setLogs] = useState<Awaited<ReturnType<typeof api.getAuditLogs>>>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const logs = await api.getAuditLogs();
+        setLogs(logs);
+        setHeatmapData(buildHeatmapFromLogs(logs));
+        setMonthlyTrends(buildMonthlyTrendsFromLogs(logs));
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Rapor verileri yüklenemedi.';
+        showToast(message, 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [showToast]);
+
   const structuredHeatmap = useMemo(() => {
     const dataByDay: Record<string, typeof heatmapData> = {};
     daysOfWeek.forEach((day) => {
       dataByDay[day] = heatmapData.filter((d) => d.day === day).sort((a, b) => a.hour - b.hour);
     });
     return dataByDay;
-  }, []);
+  }, [heatmapData]);
 
-  // Opacity color generator for heatmap cells
   const getCellColor = (value: number) => {
-    // Under different density thresholds, generate varying opacity of the coral pink accent color
     const opacity = value / 100;
     return `rgba(244, 114, 182, ${Math.max(opacity, 0.05)})`;
   };
+
+  const handleExportReport = () => {
+    if (logs.length === 0) {
+      showToast('Dışa aktarılacak kayıt bulunamadı.', 'error');
+      return;
+    }
+    const date = new Date().toISOString().slice(0, 10);
+    exportAuditLogsToCsv(logs, `guvenlik-raporu-${date}.csv`);
+    showToast(`${logs.length} kayıt rapor olarak indirildi.`, 'success');
+  };
+
+  if (loading) {
+    return (
+      <main className="reporting">
+        <LoadingSpinner />
+      </main>
+    );
+  }
 
   return (
     <main className="reporting">
       <div className="reporting-header animate-fade-in">
         <div>
           <h2>Raporlama ve Analitik</h2>
-          <p>Güvenlik riskleri ve trafik yoğunluğu için uzun vadeli analitik raporları.</p>
+          <p>{user?.email ?? 'Hesabınıza'} ait API isteklerinin güvenlik ve trafik analizi.</p>
           <Breadcrumb />
         </div>
         <div className="download-cta-section">
-          <button className="btn">
+          <button className="btn" onClick={handleExportReport}>
             <Download size={16} />
             Güvenlik Raporunu İndir
           </button>
         </div>
       </div>
 
-      {/* Heatmap Visualization Card */}
       <section className="glass-card animate-fade-in-up" style={{ animationDelay: '100ms' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ShieldAlert size={18} className="text-accent" />
           Saatlik API İstek Yoğunluk Haritası
         </h3>
         <p className="text-muted" style={{ fontSize: '12px', marginBottom: '24px' }}>
-          Haftalık bazda saatlik istek yoğunluğunu analiz edin. Daha koyu alanlar daha yüksek işlem sıklığını gösterir.
+          Kendi hesabınıza ait haftalık bazda saatlik istek yoğunluğu. Daha koyu alanlar daha yüksek işlem sıklığını gösterir.
         </p>
 
         <div className="heatmap-container">
@@ -77,10 +121,9 @@ export default function Reporting() {
                 ))}
               </div>
             ))}
-            
-            {/* Hour Labels Row */}
+
             <div className="heatmap-hour-labels">
-              <div /> {/* spacing for day label */}
+              <div />
               {Array.from({ length: 24 }).map((_, h) => (
                 <div key={h} className="heatmap-hour-label">
                   {h}
@@ -102,14 +145,13 @@ export default function Reporting() {
         </div>
       </section>
 
-      {/* Risk Trend Chart Card */}
       <section className="glass-card animate-fade-in-up" style={{ animationDelay: '200ms' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FileLineChart size={18} className="text-accent" />
-          Uzun Vadeli Risk ve İhlal Trendi
+          Aylık Hata ve Risk Trendi
         </h3>
         <p className="text-muted" style={{ fontSize: '12px', marginBottom: '16px' }}>
-          Aylık bazda hesaplanan risk skorları ile tespit edilip çözümlenen ihlal/hata olaylarının dağılımı.
+          Hesabınıza ait API isteklerinden hesaplanan aylık hata oranı ve olay dağılımı.
         </p>
 
         <div className="reporting-chart-body">
@@ -141,7 +183,7 @@ export default function Reporting() {
               <Area
                 type="monotone"
                 dataKey="riskScore"
-                name="Risk Skoru"
+                name="Hata Oranı (%)"
                 stroke="#F472B6"
                 strokeWidth={2}
                 fillOpacity={1}
@@ -150,7 +192,7 @@ export default function Reporting() {
               <Area
                 type="monotone"
                 dataKey="incidents"
-                name="Güvenlik Olayları"
+                name="Hatalı İstekler"
                 stroke="rgba(255,255,255,0.5)"
                 strokeWidth={1.5}
                 fillOpacity={1}

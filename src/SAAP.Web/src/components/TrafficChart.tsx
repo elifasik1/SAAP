@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import type { TrafficDataPoint } from '../data/mockData';
+import type { TrafficDataPoint } from '../types';
 import './TrafficChart.css';
 
 interface TrafficChartProps {

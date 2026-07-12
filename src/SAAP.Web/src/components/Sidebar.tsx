@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -7,6 +7,7 @@ import {
   UserCog,
   Menu,
 } from 'lucide-react';
+import { api } from '../services/api';
 import './Sidebar.css';
 
 interface NavItem {
@@ -18,13 +19,20 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-  { to: '/audit', label: 'Denetim Yönetimi', icon: <ScrollText size={18} />, badge: '12' },
+  { to: '/audit', label: 'Denetim Yönetimi', icon: <ScrollText size={18} /> },
   { to: '/reporting', label: 'Raporlama', icon: <BarChart3 size={18} /> },
   { to: '/settings', label: 'Ayarlar', icon: <UserCog size={18} /> },
 ];
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
+  const [logCount, setLogCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.getAuditLogs()
+      .then((logs) => setLogCount(logs.length))
+      .catch(() => setLogCount(null));
+  }, []);
 
   return (
     <>
@@ -49,7 +57,9 @@ export default function Sidebar() {
               >
                 <span className="link-icon">{item.icon}</span>
                 {item.label}
-                {item.badge && <span className="link-badge">{item.badge}</span>}
+                {item.to === '/audit' && logCount !== null && logCount > 0 && (
+                  <span className="link-badge">{logCount}</span>
+                )}
               </NavLink>
             ))}
           </nav>

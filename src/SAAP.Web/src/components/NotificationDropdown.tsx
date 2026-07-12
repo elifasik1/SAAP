@@ -1,104 +1,43 @@
 import { useState, useRef, useEffect } from 'react';
 import { ShieldAlert, FileText, Settings, Info } from 'lucide-react';
+import { api } from '../services/api';
+import type { AppNotification } from '../types';
 import './NotificationDropdown.css';
 
-interface NotificationItem {
-  id: string;
-  type: 'error' | 'report' | 'system' | 'info';
-  message: string;
-  time: string;
-  unread: boolean;
-}
+interface NotificationDropdownProps { onClose: () => void; onUnreadCountChange: (count: number) => void; }
 
-const initialNotifications: NotificationItem[] = [
-  { id: '1', type: 'report', message: 'Yeni Denetim Raporu Hazır', time: '5 dk önce', unread: true },
-  { id: '2', type: 'error', message: 'Kritik Hata: 500 (API Gateway)', time: '15 dk önce', unread: true },
-  { id: '3', type: 'system', message: 'Güvenlik ayarları güncellendi', time: '1 saat önce', unread: false },
-  { id: '4', type: 'info', message: 'Yeni kullanıcı kaydı: elif.a@saap.io', time: '2 saat önce', unread: true },
-];
-
-interface NotificationDropdownProps {
-  onClose: () => void;
-  onUnreadCountChange: (count: number) => void;
+function relativeTime(dateText: string) {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(dateText).getTime()) / 60000));
+  return minutes < 1 ? 'Şimdi' : minutes < 60 ? `${minutes} dk önce` : minutes < 1440 ? `${Math.floor(minutes / 60)} saat önce` : `${Math.floor(minutes / 1440)} gün önce`;
 }
 
 export default function NotificationDropdown({ onClose, onUnreadCountChange }: NotificationDropdownProps) {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Send unread count change to parent on load & updates
-  const unreadCount = notifications.filter(n => n.unread).length;
+  useEffect(() => { api.getNotifications().then(setNotifications).catch(() => setNotifications([])); }, []);
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+  useEffect(() => { onUnreadCountChange(unreadCount); }, [unreadCount, onUnreadCountChange]);
   useEffect(() => {
-    onUnreadCountChange(unreadCount);
-  }, [unreadCount, onUnreadCountChange]);
-
-  // Click outside detection
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    }
+    const handleClickOutside = (event: MouseEvent) => { if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) onClose(); };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+  const markAllAsRead = async () => {
+    await api.markAllNotificationsRead();
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
-
-  const toggleRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+  const markRead = async (id: string) => {
+    const current = notifications.find(n => n.id === id);
+    if (!current || current.isRead) return;
+    await api.markNotificationRead(id);
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
+  const icon = (type: AppNotification['type']) => type === 'error' ? <ShieldAlert size={14} className="text-danger" /> : type === 'report' ? <FileText size={14} /> : type === 'system' ? <Settings size={14} /> : <Info size={14} className="text-success" />;
 
-  const getIcon = (type: NotificationItem['type']) => {
-    switch (type) {
-      case 'error': return <ShieldAlert size={14} className="text-danger" />;
-      case 'report': return <FileText size={14} />;
-      case 'system': return <Settings size={14} />;
-      default: return <Info size={14} className="text-success" />;
-    }
-  };
-
-  return (
-    <div className="notification-dropdown" ref={dropdownRef}>
-      <div className="notification-dropdown-header">
-        <span className="notification-dropdown-title">Bildirimler</span>
-        {unreadCount > 0 && (
-          <button className="notification-clear-btn" onClick={markAllAsRead}>
-            Tümünü okundu işaretle
-          </button>
-        )}
-      </div>
-
-      <div className="notification-list">
-        {notifications.length === 0 ? (
-          <div className="notification-empty">Yeni bildirim bulunmuyor.</div>
-        ) : (
-          notifications.map(n => (
-            <div
-              key={n.id}
-              className={`notification-item ${n.unread ? 'unread' : ''}`}
-              onClick={() => toggleRead(n.id)}
-            >
-              <div className="notification-icon-wrapper">
-                {getIcon(n.type)}
-              </div>
-              <div className="notification-content">
-                <span className="notification-message">{n.message}</span>
-                <span className="notification-time">{n.time}</span>
-              </div>
-              {n.unread && <span className="notification-dot" />}
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className="notification-dropdown-footer">
-        <a href="#view-all" className="notification-view-all" onClick={(e) => { e.preventDefault(); onClose(); }}>
-          Tüm bildirimleri gör
-        </a>
-      </div>
-    </div>
-  );
+  return <div className="notification-dropdown" ref={dropdownRef}>
+    <div className="notification-dropdown-header"><span className="notification-dropdown-title">Bildirimler</span>{unreadCount > 0 && <button className="notification-clear-btn" onClick={markAllAsRead}>Tümünü okundu işaretle</button>}</div>
+    <div className="notification-list">{notifications.length === 0 ? <div className="notification-empty">Yeni bildirim bulunmuyor.</div> : notifications.map(n => <button type="button" key={n.id} className={`notification-item ${!n.isRead ? 'unread' : ''}`} onClick={() => markRead(n.id)}><div className="notification-icon-wrapper">{icon(n.type)}</div><div className="notification-content"><span className="notification-message">{n.message}</span><span className="notification-time">{relativeTime(n.createdAt)}</span></div>{!n.isRead && <span className="notification-dot" />}</button>)}</div>
+  </div>;
 }

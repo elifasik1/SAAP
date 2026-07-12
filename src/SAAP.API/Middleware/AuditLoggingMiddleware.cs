@@ -1,7 +1,8 @@
 using System.Diagnostics;
-using SAAP.Infrastructure.Persistence; // SaapDbContext için
-using SAAP.Domain.Entities;            // AuditLog için
-using SAAP.Infrastructure.Caching; // RedisRateLimiterService bu klasörde
+using System.Security.Claims;
+using SAAP.Infrastructure.Persistence;
+using SAAP.Domain.Entities;
+using SAAP.Infrastructure.Caching;
 
 namespace SAAP.API.Middleware;
 
@@ -16,43 +17,58 @@ public class AuditLoggingMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context, SaapDbContext dbContext,RedisRateLimiterService rateLimiter)
-{
-    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-
-    // 1. Redis'ten kontrol et
-    if (!await rateLimiter.IsAllowedAsync(ip))
+    public async Task InvokeAsync(HttpContext context, SaapDbContext dbContext, RedisRateLimiterService rateLimiter)
     {
-        context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        await context.Response.WriteAsync("Çok fazla istek attın, biraz bekle!");
-        return; // İşlemi burada kesiyoruz
-    }
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-    // 2. Limit aşılmadıysa, isteği devam ettir ve süreyi ölç
-    var sw = Stopwatch.StartNew();
-    
-    await _next(context);
-
-    sw.Stop();
-
-    try
-    {
-        var log = new AuditLog
+        if (!await rateLimiter.IsAllowedAsync(ip))
         {
-            IpAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            Path = context.Request.Path,
-            StatusCode = context.Response.StatusCode,
-            DurationMs = sw.ElapsedMilliseconds
-        };
+            context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            await context.Response.WriteAsync("Çok fazla istek attın, biraz bekle!");
+            return;
+        }
 
-        dbContext.AuditLogs.Add(log);
-        await dbContext.SaveChangesAsync();
+        var sw = Stopwatch.StartNew();
+        await _next(context);
+        sw.Stop();
+
+        try
+        {
+            var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid? userId = Guid.TryParse(userIdClaim, out var parsedId) ? parsedId : null;
+            var userEmail = context.User.FindFirstValue(ClaimTypes.Email);
+
+            var log = new AuditLog
+            {
+                IpAddress = ip,
+                Path = context.Request.Path,
+                HttpMethod = context.Request.Method,
+                StatusCode = context.Response.StatusCode,
+                DurationMs = sw.ElapsedMilliseconds,
+                UserId = userId,
+                UserEmail = userEmail
+            };
+
+            dbContext.AuditLogs.Add(log);
+
+            if (userId is not null && context.Response.StatusCode >= 400)
+            {
+                var settings = await dbContext.UserSecuritySettings.FindAsync(userId.Value);
+                if (settings?.AuditNotificationsEnabled ?? true)
+                {
+                    dbContext.Notifications.Add(new Notification
+                    {
+                        UserId = userId.Value,
+                        Type = "error",
+                        Message = $"{context.Response.StatusCode} hatası: {context.Request.Method} {context.Request.Path}"
+                    });
+                }
+            }
+            await dbContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Audit log yazılırken hata oluştu");
+        }
     }
-    catch (Exception ex)
-    {
-        // Eğer veritabanı bağlantısı koparsa veya hata olursa,
-        // uygulamanın ana akışını bozmamak için hatayı yutuyoruz ve logluyoruz.
-        _logger.LogError(ex, "Audit log yazılırken hata oluştu");
-    }
-}
 }

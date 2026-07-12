@@ -5,7 +5,7 @@
 ![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-Rate_Limiting-DC382D?style=flat-square&logo=redis&logoColor=white)
 
 ---
@@ -29,6 +29,29 @@ Platform; kullanıcı kimlik doğrulama, audit log takibi, güvenlik tercihleri 
 | **Audit Middleware** | Tüm HTTP isteklerinin otomatik loglanması |
 | **Rate Limiting** | Redis tabanlı istek sınırlama ve kötüye kullanım koruması |
 | **JWT Auth** | Kayıt, giriş, rol tabanlı yetkilendirme |
+
+---
+
+## Ekran Görüntüleri
+
+## Ekran Görüntüleri
+
+### 1. Ana Sayfa (Landing Page)
+![Ana Sayfa]("Ekran görüntüsü 2026-07-12 174459.png")
+
+### 2. Güvenlik Konsolu (Dashboard)
+![Dashboard]("Ekran görüntüsü 2026-07-12 174516.png")
+
+### 3. Denetim Yönetimi (Audit Logs)
+![Denetim Yönetimi]("Ekran görüntüsü 2026-07-12 174543.png")
+
+### 4. Raporlama ve Analitik
+![Raporlama]("Ekran görüntüsü 2026-07-12 174551.png")
+
+### 5. Kullanıcı Profili ve Ayarlar
+![Profil ve Ayarlar]("Ekran görüntüsü 2026-07-12 174557.png")
+
+
 
 ---
 
@@ -56,7 +79,7 @@ Platform; kullanıcı kimlik doğrulama, audit log takibi, güvenlik tercihleri 
               └─────────────────────┘
 ```
 
-Clean Architecture katmanları sayesinde domain logic, veri erişimi ve sunum katmanları birbirinden izole edilmiştir. Bu yapı test edilebilirliği artırır ve yeni modüllerin eklenmesini kolaylaştırır.
+**Clean Architecture** katmanları sayesinde domain logic, veri erişimi ve sunum katmanları birbirinden izole edilmiştir. Bu yapı test edilebilirliği artırır ve yeni modüllerin eklenmesini kolaylaştırır.
 
 ---
 
@@ -72,7 +95,7 @@ Clean Architecture katmanları sayesinde domain logic, veri erişimi ve sunum ka
 ### Frontend
 - React 19 · TypeScript · Vite
 - React Router · Axios · Context API
-- Recharts · Lucide React
+- Recharts (grafikler) · Lucide React (ikonlar)
 - Antigravity UI — özel dark theme tasarım sistemi
 
 ### DevOps
@@ -84,7 +107,6 @@ Clean Architecture katmanları sayesinde domain logic, veri erişimi ve sunum ka
 ## Hızlı Başlangıç
 
 ### Gereksinimler
-
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 18+](https://nodejs.org/)
 - PostgreSQL & Redis (veya Docker Compose)
@@ -103,35 +125,12 @@ dotnet restore
 cd src/SAAP.Web && npm install && cd ../..
 
 # Veritabanı servislerini başlat (Docker)
-docker-compose up -d saap-db saap-redis
-```
+docker-compose up -d
 
-`src/SAAP.API/appsettings.json` içinde connection string'leri yapılandırın:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=SAAPDb;Username=postgres;Password=mysecretpassword"
-  },
-  "RedisSettings": {
-    "ConnectionString": "localhost:6379"
-  }
-}
-```
-
-Veritabanı migration'larını uygulayın:
-
-```bash
-dotnet ef database update --project src/SAAP.Infrastructure
-```
-
-Uygulamayı çalıştırın:
-
-```bash
-# Backend (terminal 1)
+# API'yi çalıştır
 dotnet run --project src/SAAP.API
 
-# Frontend (terminal 2)
+# Frontend'i çalıştır (ayrı terminal)
 cd src/SAAP.Web && npm run dev
 ```
 
@@ -154,7 +153,6 @@ PUT    /api/auth/avatar            → Avatar yükle
 
 GET    /api/audit-logs             → Audit log listesi
 GET    /api/audit-logs/{id}        → Tekil log kaydı
-DELETE /api/audit-logs/{id}        → Log kaydını sil
 
 GET    /api/settings/security      → Güvenlik tercihleri
 PUT    /api/settings/security      → Güvenlik tercihlerini güncelle
@@ -180,18 +178,6 @@ SAAP/
 └── README.md
 ```
 
-### Frontend yapısı
-
-```
-src/SAAP.Web/src/
-├── pages/        # Dashboard, AuditManagement, Reporting, Settings, Login, Register
-├── components/   # Navbar, Sidebar, AuditTable, TrafficChart, StatCard, Toast...
-├── services/     # Axios tabanlı API client
-├── context/      # Auth & Toast provider'ları
-├── types/        # TypeScript tip tanımlamaları
-└── utils/        # CSV export vb. yardımcı fonksiyonlar
-```
-
 ---
 
 ## Güvenlik Özellikleri
@@ -202,51 +188,6 @@ src/SAAP.Web/src/
 - **Redis rate limiting** — Brute-force ve DDoS koruması
 - **Kullanıcı güvenlik tercihleri** — 2FA, oturum kilidi, IP whitelist, audit bildirimleri
 - **CORS politikası** — Yalnızca izin verilen origin'lerden erişim
-
----
-
-## Geliştirme
-
-### Frontend komutları
-
-```bash
-cd src/SAAP.Web
-
-npm run dev       # Development server
-npm run build     # Production build
-npm run preview   # Build önizleme
-npm run lint      # Lint kontrolü
-```
-
-### Migration
-
-```bash
-# Yeni migration oluştur
-dotnet ef migrations add MigrationName --project src/SAAP.Infrastructure
-
-# Migration uygula
-dotnet ef database update --project src/SAAP.Infrastructure
-```
-
-### Docker
-
-PostgreSQL ve Redis servislerini başlatmak için:
-
-```bash
-docker-compose up -d saap-db saap-redis
-```
-
-Logları görüntülemek için:
-
-```bash
-docker-compose logs -f
-```
-
-Servisleri durdurmak için:
-
-```bash
-docker-compose down
-```
 
 ---
 
@@ -261,7 +202,7 @@ docker-compose down
 
 ## Lisans
 
-Bu proje açık kaynaklıdır.
+Bu proje açık kaynaklıdır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
 
 ---
 

@@ -23,11 +23,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Math.random().toString(36).slice(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
+    let shouldSchedule = false;
 
-    setTimeout(() => {
-      removeToast(id);
-    }, 4000);
+    setToasts((prev) => {
+      if (prev.some((t) => t.message === message && t.type === type)) {
+        return prev;
+      }
+      shouldSchedule = true;
+      return [...prev, { id, message, type }].slice(-3);
+    });
+
+    if (shouldSchedule) {
+      setTimeout(() => removeToast(id), 4000);
+    }
   }, [removeToast]);
 
   const getIcon = (type: Toast['type']) => {
