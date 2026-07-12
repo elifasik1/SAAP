@@ -29,6 +29,21 @@ Platform; kullanıcı kimlik doğrulama, audit log takibi, güvenlik tercihleri 
 | **Audit Middleware** | Tüm HTTP isteklerinin otomatik loglanması |
 | **Rate Limiting** | Redis tabanlı istek sınırlama ve kötüye kullanım koruması |
 | **JWT Auth** | Kayıt, giriş, rol tabanlı yetkilendirme |
+### 1. Ana Sayfa
+![Ana Sayfa](images/landing.png)
+![Nasıl Çalışır](images/dashboard.png)
+
+### 2. Dashboard
+![Dashboard](images/dashboard.png)
+
+### 3. Denetim Yönetimi
+![Denetim Yönetimi](images/audit.png)
+
+### 4. Raporlama
+![Raporlama](images/reports.png)
+
+### 5. Ayarlar
+![Ayarlar](images/settings.png)
 
 ---
 
