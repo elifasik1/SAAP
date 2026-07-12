@@ -30,20 +30,20 @@ Platform; kullanıcı kimlik doğrulama, audit log takibi, güvenlik tercihleri 
 | **Rate Limiting** | Redis tabanlı istek sınırlama ve kötüye kullanım koruması |
 | **JWT Auth** | Kayıt, giriş, rol tabanlı yetkilendirme |
 ### 1. Ana Sayfa
-![Ana Sayfa](images/landing.png)
-![Dashboard](images/dashboard2.png)
+![Ana Sayfa](images/landing.png.png)
+![Nasıl Çalışır](images/dashboard2.png.png)
 
 ### 2. Dashboard
-![Dashboard](images/dashboard.png)
+![Dashboard](images/dashboard.png.png)
 
 ### 3. Denetim Yönetimi
-![Denetim Yönetimi](images/audit.png)
+![Denetim Yönetimi](images/audit.png.png)
 
 ### 4. Raporlama
-![Raporlama](images/reports.png)
+![Raporlama](images/reports.png.png)
 
 ### 5. Ayarlar
-![Ayarlar](images/settings.png)
+![Ayarlar](images/settings.png.png)
 
 ---
 
