@@ -31,7 +31,7 @@ Platform; kullanıcı kimlik doğrulama, audit log takibi, güvenlik tercihleri 
 | **JWT Auth** | Kayıt, giriş, rol tabanlı yetkilendirme |
 ### 1. Ana Sayfa
 ![Ana Sayfa](images/landing.png)
-![Nasıl Çalışır](images/dashboard.png)
+![Dashboard](images/dashboard2.png)
 
 ### 2. Dashboard
 ![Dashboard](images/dashboard.png)
