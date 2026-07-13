@@ -89,8 +89,7 @@ Clean Architecture katmanları sayesinde domain logic, veri erişimi ve sunum ka
 - React 19 · TypeScript · Vite
 - React Router · Axios · Context API
 - Recharts · Lucide React
-- Antigravity UI — özel dark theme tasarım sistemi
-
+- SAAP Dark UI — özel geliştirilmiş dark theme arayüzü
 ### DevOps
 - Docker Compose (PostgreSQL + Redis)
 - GitHub Actions CI pipeline
@@ -127,13 +126,13 @@ docker-compose up -d saap-db saap-redis
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=SAAPDb;Username=postgres;Password=mysecretpassword"
-  },
+"DefaultConnection": "Host=localhost;Port=5432;Database=SAAPDb;Username=postgres;Password=<your-postgres-password>"  },
   "RedisSettings": {
     "ConnectionString": "localhost:6379"
   }
 }
 ```
+Production ortamında hassas bilgiler environment variables veya Secret Manager üzerinden yönetilmelidir.
 
 Veritabanı migration'larını uygulayın:
 
@@ -263,7 +262,7 @@ Servisleri durdurmak için:
 ```bash
 docker-compose down
 ```
-
+Docker Compose yalnızca PostgreSQL ve Redis servislerini ayağa kaldırır. Backend ve frontend ayrı olarak çalıştırılır.
 ---
 
 ## Geliştirici
