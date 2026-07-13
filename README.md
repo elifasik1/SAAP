@@ -79,6 +79,7 @@ Clean Architecture katmanları sayesinde domain logic, veri erişimi ve sunum ka
 ## Teknoloji Yığını
 
 ### Backend
+
 - ASP.NET Core 10 · Entity Framework Core · PostgreSQL
 - Redis (rate limiting & caching)
 - JWT Bearer Authentication · ASP.NET Identity
@@ -86,11 +87,14 @@ Clean Architecture katmanları sayesinde domain logic, veri erişimi ve sunum ka
 - OpenAPI / Scalar API Reference
 
 ### Frontend
+
 - React 19 · TypeScript · Vite
 - React Router · Axios · Context API
 - Recharts · Lucide React
 - SAAP Dark UI — özel geliştirilmiş dark theme arayüzü
+
 ### DevOps
+
 - Docker Compose (PostgreSQL + Redis)
 - GitHub Actions CI pipeline
 
@@ -126,13 +130,14 @@ docker-compose up -d saap-db saap-redis
 ```json
 {
   "ConnectionStrings": {
-"DefaultConnection": "Host=localhost;Port=5432;Database=SAAPDb;Username=postgres;Password=<your-postgres-password>"  },
+    "DefaultConnection": "Host=localhost;Port=5432;Database=SAAPDb;Username=postgres;Password=<your-postgres-password>"
+  },
   "RedisSettings": {
     "ConnectionString": "localhost:6379"
   }
 }
 ```
-Production ortamında hassas bilgiler environment variables veya Secret Manager üzerinden yönetilmelidir.
+Not: Production ortamında veritabanı bağlantı bilgileri, JWT Secret ve diğer hassas yapılandırmalar environment variables veya Secret Manager ile yönetilmelidir.
 
 Veritabanı migration'larını uygulayın:
 
@@ -217,7 +222,7 @@ src/SAAP.Web/src/
 - **Redis rate limiting** — Brute-force ve DDoS koruması
 - **Kullanıcı güvenlik tercihleri** — 2FA, oturum kilidi, IP whitelist, audit bildirimleri
 - **CORS politikası** — Yalnızca izin verilen origin'lerden erişim
-
+- **ASP.NET Identity** — Kullanıcı yönetimi ve parola politikaları
 ---
 
 ## Geliştirme
@@ -250,6 +255,7 @@ PostgreSQL ve Redis servislerini başlatmak için:
 ```bash
 docker-compose up -d saap-db saap-redis
 ```
+Docker Compose yalnızca PostgreSQL ve Redis servislerini ayağa kaldırır. Backend ve frontend ayrı olarak çalıştırılır.
 
 Logları görüntülemek için:
 
@@ -262,14 +268,14 @@ Servisleri durdurmak için:
 ```bash
 docker-compose down
 ```
-Docker Compose yalnızca PostgreSQL ve Redis servislerini ayağa kaldırır. Backend ve frontend ayrı olarak çalıştırılır.
+
 ---
 
 ## Geliştirici
 
 **Elif Aşık**
 
-- GitHub: [@elifasik25](https://github.com/elifasik1)
+- GitHub: [@elifasik1](https://github.com/elifasik1)
 - E-posta: elifasik25@gmail.com
 
 ---
@@ -280,4 +286,4 @@ Bu proje açık kaynaklıdır.
 
 ---
 
-<sub>SAAP Platform v1.0.0 · Antigravity UI · Clean Architecture · Full-Stack Security Console</sub>
+<sub>SAAP Platform v1.0.0 · SAAP Dark UI · Clean Architecture · Full-Stack Security Console</sub>
