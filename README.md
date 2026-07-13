@@ -29,23 +29,24 @@ Platform; kullanıcı kimlik doğrulama, audit log takibi, güvenlik tercihleri 
 | **Audit Middleware** | Tüm HTTP isteklerinin otomatik loglanması |
 | **Rate Limiting** | Redis tabanlı istek sınırlama ve kötüye kullanım koruması |
 | **JWT Auth** | Kayıt, giriş, rol tabanlı yetkilendirme |
-### 1. Ana Sayfa
-![Ana Sayfa](images/landing.png.png)
-![Nasıl Çalışır](images/dashboard2.png.png)
+### 🖥️ Arayüz Görünümleri
 
-### 2. Dashboard
-![Dashboard](images/dashboard.png.png)
+Bu sistem, denetim süreçlerini dijitalleştiren ve raporlama yetenekleriyle öne çıkan bir yönetim arayüzü sunar.
 
-### 3. Denetim Yönetimi
-![Denetim Yönetimi](images/audit.png.png)
+| Ana Sayfa | Nasıl Çalışır? | Dashboard |
+| :---: | :---: | :---: |
+| ![Ana Sayfa](images/landing.png.png) | ![Nasıl Çalışır](images/dashboard2.png.png) | ![Dashboard](images/dashboard.png.png) |
 
-### 4. Raporlama
-![Raporlama](images/reports.png.png)
-
-### 5. Ayarlar
-![Ayarlar](images/settings.png.png)
+| Denetim Yönetimi | Raporlama | Ayarlar |
+| :---: | :---: | :---: |
+| ![Denetim](images/audit.png.png) | ![Raporlama](images/reports.png.png) | ![Ayarlar](images/settings.png.png) |
 
 ---
+
+**Arayüz Detayları:**
+* **Modüler Yönetim:** Denetim ve raporlama modülleri ile iş süreçlerini tek panelden yönetebilme.
+* **Akıllı Dashboard:** Sistem verilerinin anlık görselleştirilmesi ve takip edilebilirliği.
+* **Kullanıcı Dostu Ayarlar:** Özelleştirilebilir sistem tercihleri ve esnek yönetim seçenekleri.
 
 ## Mimari
 
