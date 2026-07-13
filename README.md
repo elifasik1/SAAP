@@ -270,7 +270,7 @@ docker-compose down
 
 **Elif Aşık**
 
-- GitHub: [@elifasik25](https://github.com/elifasik25)
+- GitHub: [@elifasik25](https://github.com/elifasik1)
 - E-posta: elifasik25@gmail.com
 
 ---
