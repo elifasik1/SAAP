@@ -112,7 +112,7 @@ Clean Architecture katmanları sayesinde domain logic, veri erişimi ve sunum ka
 
 ```bash
 # Repoyu klonla
-git clone https://github.com/<kullanici>/SAAP.git
+git clone https://github.com/elifasik1/SAAP.git
 cd SAAP
 
 # Backend bağımlılıkları
@@ -137,7 +137,7 @@ docker-compose up -d saap-db saap-redis
   }
 }
 ```
-Not: Production ortamında veritabanı bağlantı bilgileri, JWT Secret ve diğer hassas yapılandırmalar environment variables veya Secret Manager ile yönetilmelidir.
+**Not:** Production ortamında veritabanı bağlantı bilgileri, JWT Secret ve diğer hassas yapılandırmalar environment variables veya Secret Manager ile yönetilmelidir.
 
 Veritabanı migration'larını uygulayın:
 
@@ -255,7 +255,7 @@ PostgreSQL ve Redis servislerini başlatmak için:
 ```bash
 docker-compose up -d saap-db saap-redis
 ```
-Docker Compose yalnızca PostgreSQL ve Redis servislerini ayağa kaldırır. Backend ve frontend ayrı olarak çalıştırılır.
+**NOT**Docker Compose yalnızca PostgreSQL ve Redis servislerini ayağa kaldırır. Backend ve frontend ayrı olarak çalıştırılır.
 
 Logları görüntülemek için:
 
@@ -282,7 +282,7 @@ docker-compose down
 
 ## Lisans
 
-Bu proje açık kaynaklıdır.
+Bu proje MIT License altında lisanslanmıştır. Ayrıntılar için `LICENSE` dosyasına bakabilirsiniz.
 
 ---
 
